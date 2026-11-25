@@ -36,6 +36,7 @@ with `ALL DONE`. Windows runs unactivated, which is fine for development.
 | `.devcontainer/cm up`       | Start the VM (`docker ps` shows `actools-windows-windows-1`) |
 | `.devcontainer/cm build`    | Copy the repo into the VM and build `AcManager.sln` |
 | `.devcontainer/cm sync`     | Only copy the repo into the VM, no build           |
+| `.devcontainer/cm download [dest]` | Copy the VM's `C:\actools\Output\x86` to `<dest>/x86` on the host (default: repo `Output/x86`, git-ignored); overwrites same-named files |
 | `.devcontainer/cm ssh`      | Open a shell (cmd) inside the VM                   |
 | `.devcontainer/cm logs`     | Follow the VM container's logs                     |
 | `.devcontainer/cm down`     | Stop the VM (its disk is kept)                     |
@@ -82,7 +83,7 @@ showroom features may not work.
 | `compose.yml`      | The VM definition (Windows version, CPU/RAM/disk, ports, mounts) |
 | `oem/install.ps1`  | One-time toolchain setup, run at the end of Windows install |
 | `cm.ps1`           | Sync + build script; runs inside the VM              |
-| `cm`               | Host wrapper (`up`, `build`, `ssh`, ...)             |
+| `cm`               | Host wrapper (`up`, `build`, `download`, `ssh`, ...) |
 
 ## Troubleshooting
 

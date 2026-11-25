@@ -53,10 +53,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AcManager.Internal, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Libraries\AcManager.Internal\AcManager.Internal.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
     <Reference Include="JetBrains.Annotations, Version=11.1.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325">
       <HintPath>..\packages\JetBrains.Annotations.11.1.0\lib\net20\JetBrains.Annotations.dll</HintPath>
       <Private>True</Private>
@@ -127,6 +123,11 @@
     <ProjectReference Include="..\FirstFloor.ModernUI\FirstFloor.ModernUI.csproj">
       <Project>{9a653a28-fe46-40e8-a14f-48b0e325165d}</Project>
       <Name>FirstFloor.ModernUI</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\AcManager.InternalWrapper\AcManager.InternalWrapper.csproj">
+      <Project>{12dac3d3-b40c-4532-9ab4-7ff939fdd993}</Project>
+      <Name>AcManager.InternalWrapper</Name>
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>

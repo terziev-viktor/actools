@@ -1,0 +1,42 @@
+# Builds Content Manager (AcManager.sln, Debug|x86), the same way .devcontainer/cm.ps1 does in the
+# Windows VM, and uploads the output folder as an artifact.
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Pinned: windows-latest moved to VS 2026; the solution is known to build with VS 2022.
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      # VS 2022 no longer ships the .NET Framework 4.5.2 targeting pack, which every project targets.
+      - name: Install .NET Framework 4.5.2 reference assemblies
+        shell: pwsh
+        run: |
+          $dest = "${env:ProgramFiles(x86)}\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2"
+          if (Test-Path "$dest\mscorlib.dll") { Write-Host 'Already installed'; exit 0 }
+          $zip = "$env:RUNNER_TEMP\net452.zip"
+          Invoke-WebRequest 'https://www.nuget.org/api/v2/package/Microsoft.NETFramework.ReferenceAssemblies.net452/1.0.3' -OutFile $zip
+          Expand-Archive $zip "$env:RUNNER_TEMP\net452" -Force
+          New-Item -ItemType Directory -Force $dest | Out-Null
+          Copy-Item "$env:RUNNER_TEMP\net452\build\.NETFramework\v4.5.2\*" $dest -Recurse -Force
+
+      # NuGet packages are committed as packages.zip rather than restored.
+      - name: Extract packages
+        run: tar -xf packages.zip
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build
+        run: msbuild AcManager.sln /m /nologo /v:minimal /p:Configuration=Debug /p:Platform=x86
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ContentManager-x86-Debug
+          path: Output/x86/Debug/
+          if-no-files-found: error

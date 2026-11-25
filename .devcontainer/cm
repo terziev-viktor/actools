@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Host-side helper for the Windows build VM. See README.md.
+set -euo pipefail
+CALLER_DIR=$PWD
+cd "$(dirname "$0")"
+
+SSH_OPTS=(-o HostKeyAlias=actools-windows -o StrictHostKeyChecking=accept-new)
+VM=Docker@127.0.0.1
+
+remote() {
+  local args=""
+  for a in "$@"; do args+=" \"$a\""; done
+  ssh -p 2222 "${SSH_OPTS[@]}" $VM \
+    "powershell -NoProfile -ExecutionPolicy Bypass -File \\\\host.lan\\Data\\.devcontainer\\cm.ps1$args"
+}
+
+# Copies C:\actools\Output\x86 from the VM into <dest>/x86 (default: the repo's Output/),
+# overwriting files with the same name. A relative <dest> is taken from the caller's directory.
+download() {
+  local dest=../Output
+  if [[ $# -gt 0 ]]; then [[ $1 = /* ]] && dest=$1 || dest=$CALLER_DIR/$1; fi
+  mkdir -p "$dest"
+  scp -r -P 2222 "${SSH_OPTS[@]}" "$VM:/C:/actools/Output/x86" "$dest/"
+  echo "Downloaded to $(realpath "$dest")/x86"
+}
+
+case "${1:-}" in
+  up)    docker compose up -d && echo "Desktop / install progress: http://127.0.0.1:8006" ;;
+  down)  docker compose stop ;;
+  logs)  docker compose logs -f ;;
+  sync|build|test) remote "$@" ;;
+  download) shift; download "$@" ;;
+  ssh)   ssh -p 2222 "${SSH_OPTS[@]}" $VM ;;
+  *) echo "usage: $0 up|down|logs|sync|build|test [nunit args]|download [dest]|ssh" >&2; exit 2 ;;
+esac

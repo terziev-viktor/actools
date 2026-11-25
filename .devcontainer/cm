@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Host-side helper for the Windows build VM. See README.md.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+remote() {
+  local args=""
+  for a in "$@"; do args+=" \"$a\""; done
+  ssh -p 2222 -o HostKeyAlias=actools-windows -o StrictHostKeyChecking=accept-new Docker@127.0.0.1 \
+    "powershell -NoProfile -ExecutionPolicy Bypass -File \\\\host.lan\\Data\\.devcontainer\\cm.ps1$args"
+}
+
+case "${1:-}" in
+  up)    docker compose up -d && echo "Desktop / install progress: http://127.0.0.1:8006" ;;
+  down)  docker compose stop ;;
+  logs)  docker compose logs -f ;;
+  sync|build|test) remote "$@" ;;
+  ssh)   ssh -p 2222 -o HostKeyAlias=actools-windows -o StrictHostKeyChecking=accept-new Docker@127.0.0.1 ;;
+  *) echo "usage: $0 up|down|logs|sync|build|test [nunit args]|ssh" >&2; exit 2 ;;
+esac

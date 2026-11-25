@@ -1,0 +1,36 @@
+# Windows build/test VM for Content Manager (WPF, .NET Framework 4.5.2, x86).
+# Runs Windows 11 under KVM via dockur/windows. See README.md next to this file.
+name: actools-windows
+
+services:
+  windows:
+    image: dockurr/windows:latest
+    environment:
+      VERSION: "11"
+      RAM_SIZE: "8G"
+      CPU_CORES: "6"
+      DISK_SIZE: "64G"
+      USERNAME: "Docker"
+      PASSWORD: "admin"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    # Bound to loopback only: the web viewer and RDP have no auth beyond the password above.
+    ports:
+      - 127.0.0.1:8006:8006   # web viewer (installation progress, desktop)
+      - 127.0.0.1:3389:3389/tcp
+      - 127.0.0.1:3389:3389/udp
+      - 127.0.0.1:2222:22     # OpenSSH, used by ./cm build|test
+    volumes:
+      - windows-storage:/storage
+      # Repo is exposed read-only as \\host.lan\Data (Z: on the desktop); builds happen on a
+      # local copy in C:\actools, so the host tree never gets root-owned bin/obj files.
+      - ..:/shared:ro
+      - ./oem:/oem:ro
+    restart: unless-stopped
+    stop_grace_period: 2m
+
+volumes:
+  windows-storage:
